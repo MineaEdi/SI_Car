@@ -6,12 +6,10 @@
 ## Disciplina: Sisteme cu microprocesoare
 
 **Autori:** 
-- **Gălățanu Marco Ionuț 1306B**: asamblarea circuitului, desen tehnic, detecția liniei, comunicare bluetooth
-- **Minea Eduard Constantin 1306B**: markdown, comunicare infraroșu
-- **Petrișor Rareș Gabriel 1306B**: arhitectură, integrare module comunicare, realizare PID
-- **Zaharia Teodor Ștefan 1306B**: CRC8, markdown, control steppere
+- **Gălățanu Marco Ionuț 1405A**: asamblarea circuitului, desen tehnic, detecția liniei, comunicare bluetooth, arhitectură, realizare PID, markdown
+- **Minea Eduard Constantin 1405A**: markdown, comunicare infraroșu, integrare module comunicare, CRC8, control steppere
 
-**Data:** 19.06.2024
+**Data:** 12.01.2025
 
 ## Cuprins
 1. [Descrierea proiectului](#descrierea-proiectului)
@@ -577,7 +575,6 @@ Proiectul „Mașinuță șmecheră” reprezintă o implementare practică a un
 ## Referințe
 - [hardware-design-with-rp2040.pdf](https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf)
 - [HC-05 Datasheet.pdf](https://components101.com/sites/default/files/component_datasheet/HC-05%20Datasheet.pdf)
-- [TSOP45.pdf](https://www.vishay.com/docs/82460/tsop45.pdf)
 - [ULN2003A](https://pdf1.alldatasheet.com/datasheet-pdf/view/25566/STMICROELECTRONICS/ULN2003A.html)
 - [VSCode tutorial](https://randomnerdtutorials.com/raspberry-pi-pico-vs-code-micropython/#flash-micropython)
 - [Thonny tutorial](https://projects.raspberrypi.org/en/projects/getting-started-with-the-pico/)

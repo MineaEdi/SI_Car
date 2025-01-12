@@ -359,8 +359,8 @@ Punctul de pornire al programului.
     def calculateSpeed(self, new_speed):
         self.speed = self.speed + (new_speed - self.speed) / 100
     
-    def calculateDelay(self, volts, max):
-        s = self.speed * 10 * volts / max
+    def calculateDelay(self, volts, maxim):
+        s = self.speed * 10 * volts / maxim
         return 0 if volts < 0.2 else s # volts < 0.20
 
     def Run(self):
@@ -372,10 +372,11 @@ Punctul de pornire al programului.
             
             while not self.machine_state.end:
                 isOn = self.machine_state.IsMoving()
+                isManual = self.machine_state.IsManual()
                 if not isOn:
                     sleep_ms(200)
                     self.speed = 0
-                    self.machine_state.SetCurrentSpeed(0)
+                    self.machine_state.SetCurrentSpeed(0)                    
                 else:
                     self.calculateSpeed(self.machine_state.GetSpeed())
                     #print(self.speed)
@@ -390,16 +391,25 @@ Punctul de pornire al programului.
                     sleep_ms(1)
                     B = [ x.sample() for x in self.adcs ]
 
-                    # C = [ 1 if (b - a) > self.threshold else 0 for a, b in zip(A, B) ]
-                    # D = [ int( (b - a) * 1000 ) for a, b in zip(A, B) ]
-                    # print(D)
-                    # print(C)
+                    C = [ 1 if (b - a) > self.threshold else 0 for a, b in zip(A, B) ]
+                    D = [ int( (b - a) * 1000 ) for a, b in zip(A, B) ]
+                    #print(D)
+                    #print(C)
+                    
+                    if not isManual:
+                        left = self.calculateDelay(A[0], B[0])
+                        right = self.calculateDelay(A[1], B[1])
+                        speed = (left + right) / 20
+                        #print(speed)
+                        self.machine_state.SetCurrentSpeed(speed)
+                    else:
+                        # left, right must be between 0 - 1000
+                        # 0 - stop, 1000 - max speed
+                        left = self.machine_state.GetLeft() * 10
+                        right = self.machine_state.GetRight() * 10
+                        #print(left)
+                        #print(right)
 
-                    left = self.calculateDelay(A[0], B[0])
-                    right = self.calculateDelay(A[1], B[1])
-                    speed = (left + right) / 20
-                    #print(speed)
-                    self.machine_state.SetCurrentSpeed(speed)                
                     # Left motor stepping
                     if left != 0:
                         step_time_motor1 = 1000000 / left  # us / step 
@@ -438,26 +448,38 @@ class State:
         self.current_speed = 0
         self.current_segment = 0
         self.distance = 0.0
+        self.manual = False
+        self.left = 0
+        self.right = 0
 
     def Start(self):
         with self.lock:
             self.start = True
-            self.speed = 100
+            self.manual = False
 
     def Stop(self):
         with self.lock:
             self.start = False
             self.speed = 0
+            self.manual = True
 
     def End(self):
         self.end = True
 
-
     def IsMoving(self):
         with self.lock:
             return self.start
+    
+    def IsManual(self):
+        with self.lock:
+            return self.manual
+        
+    def SetManual(self, value: bool):
+        with self.lock:
+            self.manual = value
         
     def SetSpeed(self, speed):
+        self.manual = False
         with self.lock:
             if speed <= 0:
                 self.speed = 0
@@ -494,6 +516,24 @@ class State:
     def GetDistance(self):
         with self.lock:
             return self.distance
+    
+    def SetLeft(self, left_value):
+        with self.lock:
+            if left_value >= 0:
+                self.left = left_value
+
+    def GetLeft(self):
+        with self.lock:
+            return self.left
+    
+    def SetRight(self, right_value):
+        with self.lock:
+            if right_value >= 0:
+                self.right = right_value
+
+    def GetRight(self):
+        with self.lock:
+            return self.right
 ```
 
 7. **Simulare a server-ului pentru testare:**
@@ -530,6 +570,8 @@ if __name__ == "__main__":
     stop_text = Message('M', 1, 0xFF, 3, "0").bytes()
     speed_text = Message('M', 1, 0xFF, 3, "2:30").bytes()
     speed_text2 = Message('M', 1, 0xFF, 3, "2:80").bytes()
+    left_right_text1 = Message('M', 1, 0xFF, 3, "3:1.50").bytes()
+    left_right_text2 = Message('M', 1, 0xFF, 3, "3:1.100").bytes()
     end_text = Message('M', 1, 0xFF, 3, "-1").bytes()
 
     # Start the reception thread
@@ -541,17 +583,26 @@ if __name__ == "__main__":
     sleep(1)
     reception_thread.start()
 
-    sleep(4)
-    send_message_via_bluetooth(speed_text)
+    # sleep(4)
+    # send_message_via_bluetooth(speed_text)
 
+    # sleep(10)
+    # send_message_via_bluetooth(stop_text)
+
+    # sleep(5)
+    # send_message_via_bluetooth(start_txt)
+    # sleep(1)
+    # send_message_via_bluetooth(speed_text2)
+
+    # sleep(10)
+    # send_message_via_bluetooth(stop_text)
+    
     sleep(10)
-    send_message_via_bluetooth(stop_text)
-
-    sleep(5)
-    send_message_via_bluetooth(start_txt)
-    sleep(1)
-    send_message_via_bluetooth(speed_text2)
-
+    send_message_via_bluetooth(left_right_text1)
+    
+    sleep(10)
+    send_message_via_bluetooth(left_right_text2)
+    
     sleep(10)
     send_message_via_bluetooth(stop_text)
 
